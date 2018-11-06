@@ -6,14 +6,16 @@ On the left, you will see the sentiment of the converstaion. When positive words
 On the right, shows a graph of keywords spoken in the conversation.
 
 
-In order to run this demo, you will need a few things:
-- Create an application in Nexmo
-- set the `event_url` to {your-url}/events and `answer_url` to {your-url}/answer.
-- save the application_id to your enviroment variables..
-- copy the private key and save to a file, name in `private.key` and save this into the `server` folder
-- purchase a nexmo phone number
-- assign this phone number to this application
-- create a .env file will the following variables
+In the repo, you will see 2 folders, `server` and `WS-node`. The `server` folder contains a simple VAPI call from a Nexmo number into the websocket. The `WS-node` folder, contains the websocket, as well as the code to connect to Voicebase
+
+##Get Started
+In order to run this demo, you will need a few things first.
+- Create an application on Nexmo
+- Set the `event_url` to {your-url}/events and `answer_url` to {your-url}/answer. To run locally, use [Ngrok](https://ngrok.com)
+- Copy the private key and save to a file, name it `private.key`
+- Purchase a nexmo phone number
+- Assign this phone number to this application
+- Create a `.env` file will the following variables
 ```
 API_KEY={NEXMO-API-KEY}
 API_SECRET={NEXMO-API-SECRET}
@@ -35,11 +37,5 @@ ASR_URL={VOICEBASE_URL}
 ASR_CLIENT_KEY={VOICEBASE_CLIENT_KEY}
 ASR_CLIENT_SECRET={VOICEBASE_CLIENT_SECRET}
 ```
-
-# links to voicebase comming soon
-
-finally, run `npm start` inside the `WS-node` folder, and navigate to the url on your browser
-
-
-
-
+Then run `npm start` in this folder to begin the websocket, and navigate to the url on your browser
+Note, to run this locally, you will need 2 ngrok's running. One will be for the VAPI call, the other is for the websocket.
