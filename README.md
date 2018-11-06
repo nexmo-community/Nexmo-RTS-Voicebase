@@ -8,7 +8,7 @@ On the right, shows a graph of keywords spoken in the conversation.
 
 In the repo, you will see 2 folders, `server` and `WS-node`. The `server` folder contains a simple VAPI call from a Nexmo number into the websocket. The `WS-node` folder, contains the websocket, as well as the code to connect to Voicebase
 
-##Get Started
+## Get Started
 In order to run this demo, you will need a few things first.
 - Create an application on Nexmo
 - Set the `event_url` to {your-url}/events and `answer_url` to {your-url}/answer. To run locally, use [Ngrok](https://ngrok.com)
