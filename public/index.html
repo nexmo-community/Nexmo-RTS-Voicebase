@@ -23,7 +23,16 @@
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
-
+  <script>
+   $(document).ready(function() {
+		$.ajax({
+			url: "/nexmo_num"
+		}).then(function(data) {
+			var elem = document.getElementById("nexmo_number");
+			$('#nexmo_number').html(data);
+		});
+   })
+  </script>
     <body style="padding-left:30px; padding-right:30px">
       <div style="height:80px;">
         <img style=" float: left; transform: scale(.6); align:center;" src="/public/nexmo.png">
@@ -31,7 +40,7 @@
        </div>
       <div>
         <h1 style="text-align:center">Communication with Nexmo Websocket and Real-time transcription engine</h1>
-        <h3  style="text-align:center"> Dial: 1 (201)834-0424 to get started </h3>
+        <h3  style="text-align:center"> Dial: <span id="nexmo_number"></span> to get started </h3>
       </div>
       <script src="/socket.io/socket.io.js"></script>
       <script src="/public/js/socket.js"></script>
@@ -47,6 +56,8 @@
 
             })
         })
+
+       
       </script>
     <div class="status">status:</div>
      <div class="row">

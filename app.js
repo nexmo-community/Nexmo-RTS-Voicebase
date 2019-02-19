@@ -1,14 +1,13 @@
 
 require('dotenv').config()
 
+
 var WebSocketServer = require('websocket').server;
 
 var http = require('http');
 var HttpDispatcher = require('httpdispatcher');
 var dispatcher     = new HttpDispatcher();
 const fs = require('fs');
-const winston = require('winston')
-winston.level = 'silly'
 var AsrClient = require('./lib/asrClient')
 var asrActive = false
 var myAsrClient;
@@ -26,7 +25,7 @@ var io = require('socket.io').listen(server);
 
 // When a client connects, we note it in the console
 io.sockets.on('connection', function (socket) {
-    winston.log('info','A client is connected!');
+    console.log('A client is connected!');
 });
 
 
@@ -40,8 +39,6 @@ var wsServer = new WebSocketServer({
 //Lets use our dispatcher
 function handleRequest(request, response){
     try {
-        //log the request on console
-        winston.log('info', 'handleRequest',request.url);
         //Dispatch
         dispatcher.dispatch(request, response);
     } catch(err) {
@@ -51,27 +48,55 @@ function handleRequest(request, response){
 dispatcher.setStatic('/public');
 dispatcher.setStaticDirname('public');
 dispatcher.onGet("/", function(req, res) {
-  winston.log('info', 'loading index');
-  winston.log('info', 'port', process.env.PORT)
+
    fs.readFile('./public/index.html', 'utf-8', function(error, content) {
-        winston.log('debug', 'loading Index');
         res.writeHead(200, {"Content-Type": "text/html"});
         res.end(content);
     });
 });
+dispatcher.onGet("/nexmo_num", function(req, res) {
+    res.writeHead(200, {"Content-Type": "text/html"});
+    res.end(process.env.NEXMO_NUMBER);
+});
+
+dispatcher.onGet("/answer", function(req, res) {
+  var json = [
+    {
+        "action": "connect",
+        "from": process.env.NEXMO_NUMBER,
+        "endpoint": [
+            {
+                "type": "websocket",
+                "uri": 'ws://' + req.headers.host + '/socket',
+                "content-type": "audio/l16;rate=16000",
+                "headers": {
+                    "app": "audiosocket"
+                }
+            }
+        ]
+    }
+]
+  console.log("answer", json);
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(json), 'utf-8');
+});
+
 // Serve the ncco
 dispatcher.onGet("/ncco", function(req, res) {
     fs.readFile('./ncco.json', function(error, data) {
-        winston.log('debug', 'loading ncco');
        res.writeHead(200, { 'Content-Type': 'application/json' });
        res.end(data, 'utf-8');
     });
 });
 
+dispatcher.onPost("/events", function(req, res) {
+  console.log(req.body)
+ res.writeHead(200, { 'Content-Type': 'application/json' });
+ res.end();
+});
+
 dispatcher.onPost("/terminate", function(req, res) {
-     winston.log('info', 'terminate called');
      wsServer.closeAllConnections();
-  
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end();
 });
@@ -79,23 +104,23 @@ dispatcher.onPost("/terminate", function(req, res) {
 wsServer.on('connect', function(connection) {
     connections.push(connection);
 
-    winston.log('info', (new Date()) + ' Connection accepted' + ' - Protocol Version ' + connection.webSocketVersion);
+    console.log((new Date()) + ' Connection accepted' + ' - Protocol Version ' + connection.webSocketVersion);
     connection.on('message', function(message) {
 
         if (message.type === 'utf8') {
             try {
               var json = JSON.parse(message.utf8Data);
-              winston.log('info', "json", json['app']);
+              console.log("json", json['app']);
 
               if (json['app'] == "audiosocket") {
                 VBConnect();
-                winston.log('info', 'connecting to VB');
+                console.log('connecting to VB');
               }
               
             } catch (e) {
-              winston.log('error', 'message error catch', e)
+              console.log("message error catch", e)
             }
-            winston.log('info', "utf ",message.utf8Data);
+            console.log("utf ",message.utf8Data);
         }
         else if (message.type === 'binary') {
             // Reflect the message back
@@ -107,38 +132,38 @@ wsServer.on('connect', function(connection) {
     });
 
     connection.on('close', function(reasonCode, description) {
-        winston.log('info', (new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         wsServer.closeAllConnections();
 
     });
 });
 
 wsServer.on('close', function(connection) {
-  winston.log('info', 'socket closed');
+  console.log('socket closed');
   if (asrActive) {
       io.sockets.emit('status',  "disconnected");
-      winston.log('info', 'trying to close ASR client');
+      console.log('trying to close ASR client');
       myAsrClient.endOfAudio();
       myAsrClient = null;
       asrActive = false;
   }
   else {
-    winston.log('info', 'asr not active, cant close');
+    console.log('asr not active, cant close');
   }
 })
 
 wsServer.on('error', function(error) {
-  winston.log('error', 'Websocket error', error);
+  console.log('Websocket error', error);
 })
 
 var port = process.env.PORT || 8000
 server.listen(port, function(){
-    winston.log('info', "Server listening on :%s", port);
+    console.log("Server listening on ", port);
 });
 
 function VBConnect() {
 
-    winston.log('debug', 'load AsrClient');
+    console.log('load AsrClient');
     myAsrClient = new AsrClient()
     var url = process.env.ASR_URL;
         client_key = process.env.ASR_CLIENT_KEY;
@@ -153,42 +178,42 @@ function VBConnect() {
       controlMessage.sampleRate = '16000'
       controlMessage.windowSize = 10
       myAsrClient.reserveAsr(controlMessage)
-      winston.log('debug', "sending control message", controlMessage);
+      console.log("sending control message", controlMessage);
 
       myAsrClient.subscribeEvent('engineState', (msg) => {
-        winston.log('info', 'Engine State Event', msg)
+        console.log('Engine State Event', msg)
         if (msg === 'ready') {
           asrActive = true
           engineStartedMs = Date.now()
-          winston.log('info', 'Setting asrActive to true: ', asrActive, ' this.asrActive ', this.asrActive)
+          console.log('Setting asrActive to true: ', asrActive, ' this.asrActive ', this.asrActive)
           io.sockets.emit('status',  "connected");
         }
       })
 
       myAsrClient.subscribeEvent('transcript', (msg) => {
-        winston.log('debug', 'transcript', msg);
+        console.log('transcript', msg);
         io.sockets.emit('transcript', msg);
       })
 
       myAsrClient.subscribeEvent('sentiment', (msg) => {
-        winston.log('debug', 'sentiment', msg);
+        console.log('sentiment', msg);
         io.sockets.emit('sentiment', msg);
 
       })
 
       myAsrClient.subscribeEvent('nlp', (msg) => {
-          winston.log('debug', 'nlp', msg);
+          console.log('nlp', msg);
           io.sockets.emit('nlp', msg);
       })
 
       myAsrClient.subscribeEvent('keywords', (msg) => {
-          winston.log('info', 'keywords', msg);
+          console.log('keywords', msg);
           io.sockets.emit('keywords', msg);
       })
 
 
        myAsrClient.subscribeEvent('latency', (msg) => {
-          winston.log('info', 'latency', msg);
+          console.log('latency', msg);
           io.sockets.emit('latency', msg);
       })
     })
