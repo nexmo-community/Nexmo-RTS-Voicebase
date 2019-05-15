@@ -81,14 +81,6 @@ dispatcher.onGet("/answer", function(req, res) {
   res.end(JSON.stringify(json), 'utf-8');
 });
 
-// Serve the ncco
-dispatcher.onGet("/ncco", function(req, res) {
-    fs.readFile('./ncco.json', function(error, data) {
-       res.writeHead(200, { 'Content-Type': 'application/json' });
-       res.end(data, 'utf-8');
-    });
-});
-
 dispatcher.onPost("/events", function(req, res) {
   console.log(req.body)
  res.writeHead(200, { 'Content-Type': 'application/json' });
