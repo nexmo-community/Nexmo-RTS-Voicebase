@@ -18,7 +18,7 @@
     "httpdispatcher": "^2.0.1",
     "request": "^2.79.0",
     "socket.io": "^2.1.1",
-    "socket.io-client": "^1.7.2",
+    "socket.io-client": "^2.0.0",
     "websocket": "^1.0.24"
   }
 }
